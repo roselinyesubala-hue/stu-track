@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}">
+  <script src="{{ url_for('static', filename='admin_dashboard.js') }}" defer></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        <h2>Welcome, Admin</h2>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#add-student" onclick="showPanel('add-student')">Add Student</a></li>
+          <li><a href="#student-list" onclick="showPanel('student-list'); return false;">Student List</a></li>
+          <li><a href="#attendance" onclick="showPanel('attendance')">Mark Attendance</a></li>
+          <li><a href="#outpass" onclick="showPanel('outpass')">Outpass</a></li>
+          <li><a href="#leave" onclick="showPanel('leave')">Leave Requests</a></li>
+          <li><a href="#notice" onclick="showPanel('notice')">Post Notice</a></li>
+          <li><a href="#reports" onclick="showPanel('reports')">Reports</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      {% set active_panel = 'edit-student' if edit_student else 'edit_student' %}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+      <!-- Add Student -->
+      <section id="add-student" class="panel {{ 'active' if active_panel == 'add-student' else 'hidden' }}">
+        <div class="form-container">
+          <h2>Add Student</h2>
+          <form method="POST" action="{{ url_for('admin.add_student') }}" class="student-form">
+            <!-- Student Details -->
+            <div class="form-group"><label>Student ID</label><input type="text" name="student_id" required></div>
+            <div class="form-group"><label>Student Name</label><input type="text" name="student_name" required></div>
+            <div class="form-group"><label>Room Number</label><input type="text" name="room_number"></div>
+            <div class="form-group"><label>Floor Number</label><input type="text" name="floor_number"></div>
+            <div class="form-group"><label>Student Contact</label><input type="text" name="student_contact"></div>
+            <div class="form-group"><label>Student Email</label><input type="email" name="student_email"></div>
+            <div class="form-group"><label>Address</label><textarea name="address"></textarea></div>
+
+            <h3>Parent Details</h3>
+            <div class="form-group"><label>Father's Name</label><input type="text" name="father_name"></div>
+            <div class="form-group"><label>Mother's Name</label><input type="text" name="mother_name"></div>
+            <div class="form-group"><label>Parent Contact</label><input type="text" name="parent_contact"></div>
+            <div class="form-group"><label>Parent Email</label><input type="email" name="parent_email"></div>
+            <div class="form-group">
+    <label>Parent Address</label>
+    <textarea name="parent_address" class="form-control" rows="2"></textarea>
+</div>
+
+            <h3>Guardian Details</h3>
+            <div class="form-group"><label>Guardian Name</label><input type="text" name="guardian_name"></div>
+            <div class="form-group"><label>Guardian Contact</label><input type="text" name="guardian_contact"></div>
+            <div class="form-group"><label>Guardian Address</label><textarea name="guardian_address"></textarea></div>
+            <div class="form-group"><label>Guardian Email</label><input type="email" name="guardian_email"></div>
+            <button type="submit" class="btn">Save Student</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Student List Panel -->
+      <section id="student-list" class="panel hidden">
+        <div class="form-container">
+          <h2>Student List</h2>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Room</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student in students %}
+                <tr>
+                  <td>{{ student.id }}</td>
+                  <td>{{ student.student_id }}</td>
+                  <td>{{ student.student_name }}</td>
+                  <td>{{ student.room_number }}</td>
+                  <td>{{ student.student_contact }}</td>
+                  <td>{{ student.student_email or '—' }}</td>
+                  <td>
+                    <a href="{{ url_for('admin.dashboard', edit_id=student.id, _anchor='edit-student') }}"
+                      class="btn btn-sm btn-primary">Edit</a>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="7" class="text-center">No students found.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Edit Student Panel -->
+      {% set active_panel = 'edit-student' if edit_student else 'add-student' %}
+      <section id="edit-student" class="panel {{ 'active' if active_panel == 'edit-student' else 'hidden' }}">
+        <div class="form-container">
+          <h2>Edit Student: {{ edit_student.student_name if edit_student else '' }}</h2>
+          <form method="POST" action="{{ url_for('admin.update_student') }}" class="student-form">
+            <input type="hidden" name="student_id" value="{{ edit_student.id if edit_student else '' }}">
+
+            <!-- Student Details -->
+            <h3>Student Details</h3>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Student ID <span class="text-danger">*</span></label>
+                  <input type="text" name="student_id_num" class="form-control"
+                    value="{{ edit_student.student_id if edit_student else '' }}" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Student Name <span class="text-danger">*</span></label>
+                  <input type="text" name="student_name" class="form-control"
+                    value="{{ edit_student.student_name if edit_student else '' }}" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>Room Number</label>
+                  <input type="text" name="room_number" class="form-control"
+                    value="{{ edit_student.room_number if edit_student else '' }}">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>Floor Number</label>
+                  <input type="text" name="floor_number" class="form-control"
+                    value="{{ edit_student.floor_number if edit_student else '' }}">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>Student Contact <span class="text-danger">*</span></label>
+                  <input type="tel" name="student_contact" class="form-control"
+                    value="{{ edit_student.student_contact if edit_student else '' }}" pattern="[0-9]{10}" required>
+                  <small class="text-muted">10 digits</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Student Email</label>
+                  <input type="email" name="student_email" class="form-control"
+                    value="{{ edit_student.student_email if edit_student else '' }}">
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-group">
+                  <label>Address</label>
+                  <textarea name="address" class="form-control"
+                    rows="2">{{ edit_student.address if edit_student else '' }}</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Father's Name</label>
+                  <input type="text" name="father_name" class="form-control"
+                    value="{{ edit_student.father_name if edit_student else '' }}">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label>Mother's Name</label>
+                  <input type="text" name="mother_name" class="form-control"
+                    value="{{ edit_student.mother_name if edit_student else '' }}">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Parent Contact</label>
+                <input type="tel" name="parent_contact" class="form-control"
+                  value="{{ edit_student.parent_contact if edit_student else '' }}" pattern="[0-9]{10}">
+                <small class="text-muted">10 digits</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Parent Email</label>
+                <input type="email" name="parent_email" class="form-control"
+                  value="{{ edit_student.parent_email if edit_student else '' }}">
+              </div>
+            </div>
+      
+        <div class="col-12">
+            <div class="form-group">
+              <label>Parent Address</label>
+              <textarea name="parent_address" class="form-control"
+                rows="2">{{ edit_student.parent_address if edit_student else '' }}</textarea>
+            </div>
+            </div>
+
+        <!-- Guardian Details -->
+        <h3>Guardian Details</h3>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Guardian Name</label>
+              <input type="text" name="guardian_name" class="form-control"
+                value="{{ edit_student.guardian_name if edit_student else '' }}">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Guardian Contact</label>
+              <input type="tel" name="guardian_contact" class="form-control"
+                value="{{ edit_student.guardian_contact if edit_student else '' }}" pattern="[0-9]{10}">
+              <small class="text-muted">10 digits</small>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Guardian Email</label>
+              <input type="email" name="guardian_email" class="form-control"
+                value="{{ edit_student.guardian_email if edit_student else '' }}">
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-group">
+              <label>Guardian Address</label>
+              <textarea name="guardian_address" class="form-control"
+                rows="2">{{ edit_student.guardian_address if edit_student else '' }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mt-4">
+          <button type="submit" class="btn btn-primary">Update Student</button>
+          <a href="{{ url_for('admin.dashboard', _anchor='student-list') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+        </form>
+  </div>
+  </section>
+
+
+  <!-- Attendance -->
+  <section id="attendance" class="panel">
+    <div class="form-container">
+      <h2>Mark Attendance</h2>
+      <form method="POST" action="{{ url_for('admin.attendance') }}">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="form-group">
+          <label>Time</label>
+          <input type="time" name="time" required>
+        </div>
+
+        <h3>Student List</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+            <tr>
+              <td>{{ student.student_id }}</td>
+              <td>{{ student.student_name }}</td>
+              <td>
+                <label><input type="radio" name="status_{{ student.student_id }}" value="Present"> Present</label>
+                <label><input type="radio" name="status_{{ student.student_id }}" value="Absent"> Absent</label>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <button type="submit" class="btn">Save Attendance</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Outpass -->
+  <!-- Outpass -->
+  <section id="outpass" class="panel">
+    <div class="form-container">
+      <h2 class="section-title">Outpass Requests</h2>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Student ID</th>
+              <th>Reason</th>
+              <th>Leave Time</th>
+              <th>Return Time</th> <!-- Changed from "Arrival Time" -->
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for outpass in outpasses %}
+            <tr>
+              <td>{{ outpass.student_id }}</td>
+              <td>{{ outpass.reason }}</td>
+              <td>
+                <!-- Format leave_time to show only HH:MM -->
+                <input type="time" class="form-control" id="leave-{{ outpass.id }}"
+                  value="{{ outpass.leave_time.strftime('%H:%M') if outpass.leave_time else '' }}">
+              </td>
+              <td>
+                <!-- Use return_time with proper formatting -->
+                <input type="time" class="form-control" id="return-{{ outpass.id }}"
+                  value="{{ outpass.return_time.strftime('%H:%M') if outpass.return_time else '' }}">
+              </td>
+              <td>
+                <span
+                  class="badge bg-{{ 'success' if outpass.status == 'Approved' else 'danger' if outpass.status == 'Rejected' else 'secondary' }}">
+                  {{ outpass.status or "Pending" }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-outline-success btn-sm approve-btn" data-id="{{ outpass.id }}">Approve</button>
+                <button class="btn btn-outline-danger btn-sm reject-btn" data-id="{{ outpass.id }}">Reject</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.querySelectorAll(".approve-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const leave = document.getElementById(`leave-${id}`).value;
+        // Use the correct id: return-${id}
+        const returnTime = document.getElementById(`return-${id}`).value;
+
+        fetch(`/admin/outpass/approve/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leave_time: leave,
+            arrival_time: returnTime   // Keep key as 'arrival_time' to match backend
+          })
+        })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            location.reload();
+          })
+          .catch(err => alert("Error: " + err));
+      });
+    });
+
+    document.querySelectorAll(".reject-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+
+        fetch(`/admin/outpass/reject/${id}`, {
+          method: "POST"
+        })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            location.reload();
+          })
+          .catch(err => alert("Error: " + err));
+      });
+    });
+  </script>
+  <!-- Leave Requests -->
+  <section id="leave" class="panel">
+    <div class="form-container">
+      <h2>Leave Requests</h2>
+      <form method="POST" action="{{ url_for('admin.leave_requests') }}">
+        <p>List of leave requests will appear here.</p>
+    </div>
+  </section>
+
+  <!-- Notice -->
+  <section id="notice" class="panel">
+    <div class="form-container">
+      <h2>Post Notice</h2>
+      <form method="POST" action="{{ url_for('admin.notice') }}">
+        <div class="form-group"><label>Title</label><input type="text" name="title" required></div>
+        <div class="form-group"><label>Message</label><textarea name="message" required></textarea></div>
+        <button type="submit" class="btn">Publish Notice</button>
+      </form>
+    </div>
+  </section>
+
+
+
+  <!-- Reports -->
+  <section id="reports" class="panel">
+    <div class="form-container">
+      <h2>Reports</h2>
+
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Report ID</th>
+            <th>Student ID</th>
+            <th>Problem</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+          <tr>
+            <td>{{ report.id }}</td>
+            <td>{{ report.student_id }}</td>
+            <td>{{ report.content }}</td>
+            <td>{{ report.status or "Pending" }}</td>
+            <td>
+              <button class="btn btn-primary" data-id="{{ report.id }}" onclick="resolveReport(this.dataset.id)">
+
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    function resolveReport(id) {
+      fetch(`/admin/report/resolve/${id}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+  </script>
+  </main>
+  </div>
+</body>
+
+</html>

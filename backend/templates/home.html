@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StuTrack | Smart Campus Management</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+
+<body style="--logo-url: url('{{ url_for('static', filename='logo.png') }}');">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-messages-container">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}" id="flash-{{ loop.index }}">
+      {{ message }}
+      <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <main class="main-container">
+    <section class="hero-section">
+      <div class="hero-overlay"></div>
+      <img src="{{ url_for('static', filename='hostel1.jpg') }}" alt="SJU Campus" class="hero-image">
+      <div class="hero-content">
+        <header class="hero-header">
+          <div class="logo">Stu<span>Track</span></div>
+        </header>
+        <div class="hero-text">
+          <h1>St Joseph’s University Hostel</h1>
+          <p>St Joseph’s University Hostel in Bengaluru features a magnificently designed hostel for men with all
+            necessary amenities for boarding and recreational activities.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-section">
+      <div class="auth-card">
+        <h2>WELCOME TO STUTRACK</h2>
+        <p class="subtitle">Log in to access</p>
+        <button class="main-btn" onclick="redirectToLogin()">
+          Get Started
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      <footer class="main-footer">
+        <div class="footer-info">
+          <h3>ST JOSEPH'S UNIVERSITY</h3>
+          <address>
+            <p>36, Lalbagh Road, Bengaluru - 560027</p>
+            <p><a href="mailto:sjuhosteladmission@sju.edu.in">sjuhosteladmission@sju.edu.in</a></p>
+            <p>+91 9480811925</p>
+          </address>
+          <div class="accreditation">
+            A PUBLIC-PRIVATE PARTNERSHIP UNIVERSITY UNDER RUSA 2.0 OF MHRD (GOVT. OF INDIA)
+          </div>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='home.js') }}"></script>
+</body>
+
+</html>

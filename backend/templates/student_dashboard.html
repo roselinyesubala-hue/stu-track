@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>St Joseph's University</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='student_dashboard.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    const VAPID_PUBLIC_KEY = "{{ config.VAPID_PUBLIC_KEY or '' }}";
+    console.log("VAPID Key loaded from config:", VAPID_PUBLIC_KEY ? "Yes (starts with " + VAPID_PUBLIC_KEY.substring(0, 5) + "...)" : "No (Empty)");
+  </script>
+</head>
+
+<body>
+  <div class="dashboard">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" role="navigation" aria-label="Student navigation">
+      <h2 class="sidebar-title">Student Panel</h2>
+      <ul class="sidebar-nav">
+        <li><a href="#profile" onclick="showPanel('profile'); return false;"><i class="fas fa-user"></i> Profile</a>
+        </li>
+        <li><a href="#attendance" onclick="showPanel('attendance'); return false;"><i class="fas fa-calendar-alt"></i>
+            Attendance</a></li>
+        <li><a href="#outpass" onclick="showPanel('outpass'); return false;"><i class="fas fa-ticket-alt"></i>
+            Outpass</a></li>
+        <li><a href="#leave" onclick="showPanel('leave'); return false;"><i class="fas fa-home"></i> Leave Request</a>
+        </li>
+        <li><a href="#notice" onclick="showPanel('notice'); return false;"><i class="fas fa-bullhorn"></i> Notices</a>
+        </li>
+        <li><a href="#reports" onclick="showPanel('reports'); return false;"><i class="fas fa-exclamation-triangle"></i>
+            Reports</a></li>
+        <li><a href="{{ url_for('auth_bp.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content" role="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="title">Student Dashboard</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="notification-bell" id="notifBell" onclick="enableNotifications()" title="Enable Notifications">
+            <i class="fas fa-bell"></i>
+          </div>
+          <span class="welcome">Welcome, {{ session.get('student_name', student.student_name if student else '')
+            }}</span>
+        </div>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <!-- Profile Panel -->
+      <section id="profile" class="panel">
+        <div class="profile-header-new">
+          <div class="profile-banner"></div>
+          <div class="profile-info-main">
+            <div class="profile-avatar">
+              {{ student.student_name[0] if student.student_name else 'S' }}
+            </div>
+            <div class="profile-name-id">
+              <h2 class="student-name-text">{{ student.student_name }}</h2>
+              <p class="student-id-text">ID: {{ student.student_id }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-details-grid">
+          <!-- Academic & Contact -->
+          <div class="details-card">
+            <h3 class="details-card-title"><i class="fas fa-user-graduate"></i> Academic Information</h3>
+            <div class="details-row">
+              <span class="details-label">Room Number</span>
+              <span class="details-value">{{ student.room_number }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Floor Number</span>
+              <span class="details-value">{{ student.floor_number }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Email</span>
+              <span class="details-value">{{ student.student_email }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Contact</span>
+              <span class="details-value">{{ student.student_contact }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Address</span>
+              <span class="details-value">{{ student.address }}</span>
+            </div>
+          </div>
+
+          <!-- Parent Details -->
+          <div class="details-card">
+            <h3 class="details-card-title"><i class="fas fa-users"></i> Parent Details</h3>
+            <div class="details-row">
+              <span class="details-label">Father's Name</span>
+              <span class="details-value">{{ student.father_name }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Mother's Name</span>
+              <span class="details-value">{{ student.mother_name }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Contact</span>
+              <span class="details-value">{{ student.parent_contact }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Email</span>
+              <span class="details-value">{{ student.parent_email }}</span>
+            </div>
+          </div>
+
+          <!-- Guardian Details -->
+          <div class="details-card">
+            <h3 class="details-card-title"><i class="fas fa-user-shield"></i> Guardian Details</h3>
+            <div class="details-row">
+              <span class="details-label">Name</span>
+              <span class="details-value">{{ student.guardian_name }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Contact</span>
+              <span class="details-value">{{ student.guardian_contact }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Email</span>
+              <span class="details-value">{{ student.guardian_email }}</span>
+            </div>
+            <div class="details-row">
+              <span class="details-label">Address</span>
+              <span class="details-value">{{ student.guardian_address }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Attendance Panel -->
+      <section id="attendance" class="panel hidden">
+        <h2 class="panel-title"><i class="fas fa-calendar-check"></i> Attendance</h2>
+
+        <div class="content-card">
+          <div class="search-bar" style="margin-bottom:1.5rem;">
+            <input type="text" id="studentAttendanceSearch" placeholder="Search by date (YYYY-MM-DD)"
+              style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 14px;">
+          </div>
+
+          <table class="table" id="studentAttendanceTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in attendance %}
+              <tr>
+                <td>{{ record.marked_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ record.marked_at.strftime('%I:%M %p') }}</td>
+                <td><span class="badge {% if record.status == 'Present' %}bg-success{% else %}bg-danger{% endif %}">{{
+                    record.status }}</span></td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="3">No attendance records found</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <!-- Outpass Panel -->
+      <section id="outpass" class="panel hidden">
+        <h2 class="panel-title"><i class="fas fa-ticket-alt"></i> Outpass Request</h2>
+
+        <div class="content-card">
+          <h3 class="sub-title" style="margin-top: 0; color: #2c3e50; font-weight: 600;">Request New Outpass</h3>
+          <form method="POST" action="{{ url_for('student.outpass') }}" class="form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <label>Room Number<input type="text" name="room_number" required placeholder="e.g. 101"></label>
+              <label>Floor Number<input type="text" name="floor_number" required placeholder="e.g. 1"></label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <label>Leave Date & Time<input type="datetime-local" name="leave_time" required></label>
+              <label>Return Date & Time<input type="datetime-local" name="return_time" required></label>
+            </div>
+            <label>Place Going<input type="text" name="place" required placeholder="Where are you going?"></label>
+            <label>Reason<textarea name="reason" required placeholder="Reason for outpass..."></textarea></label>
+            <button type="submit" class="btn" style="width: 100%; padding: 12px; margin-top: 1rem;">Submit Outpass
+              Request</button>
+          </form>
+        </div>
+
+        <div class="content-card">
+          <h3 class="sub-title" style="margin-top: 0; color: #2c3e50; font-weight: 600;">My Outpass History</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Place</th>
+                <th>Leave</th>
+                <th>Return</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for op in outpasses %}
+              <tr>
+                <td style="font-weight: 600;">{{ op.place }}</td>
+                <td style="font-size: 13px;">
+                  {% if op.status == 'Approved' and op.approved_leave_time %}
+                  {{ op.approved_leave_time.strftime('%Y-%m-%d %I:%M %p') }}
+                  {% else %}
+                  {{ op.leave_time.strftime('%Y-%m-%d %I:%M %p') }}
+                  {% endif %}
+                </td>
+                <td style="font-size: 13px;">
+                  {% if op.status == 'Approved' and op.approved_return_time %}
+                  {{ op.approved_return_time.strftime('%Y-%m-%d %I:%M %p') }}
+                  {% else %}
+                  {{ op.return_time.strftime('%Y-%m-%d %I:%M %p') }}
+                  {% endif %}
+                </td>
+                <td>
+                  <span
+                    class="badge {% if op.status == 'Approved' %}bg-success{% elif op.status == 'Rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ op.status }}
+                  </span>
+                </td>
+                <td style="font-size: 13px; color: #666;">
+                  {% if op.status == 'Approved' and op.times_modified %}
+                  Modified timings
+                  {% elif op.status == 'Approved' %}
+                  Approved
+                  {% elif op.status == 'Rejected' %}
+                  Rejected
+                  {% else %}
+                  Pending
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5">No outpass requests</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <!-- Leave Panel -->
+      <section id="leave" class="panel hidden">
+        <h2 class="panel-title"><i class="fas fa-home"></i> Leave Request</h2>
+
+        <div class="content-card">
+          <h3 class="sub-title" style="margin-top: 0; color: #2c3e50; font-weight: 600;">Request New Leave</h3>
+          <form method="POST" action="{{ url_for('student.leave') }}" class="form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <label>Room Number<input type="text" name="room_number" required></label>
+              <label>Floor Number<input type="text" name="floor_number" required></label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <label>Leave Date<input type="date" name="leave_date" required></label>
+              <label>Return Date<input type="date" name="return_date" required></label>
+            </div>
+            <label>Reason<textarea name="reason" required placeholder="Why are you taking leave?"></textarea></label>
+            <button type="submit" class="btn" style="width: 100%; padding: 12px; margin-top: 1rem;">Submit Leave
+              Request</button>
+          </form>
+        </div>
+
+        <div class="content-card">
+          <h3 class="sub-title" style="margin-top: 0; color: #2c3e50; font-weight: 600;">My Leave History</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Reason</th>
+                <th>Leave Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lr in leave_requests %}
+              <tr>
+                <td style="font-weight: 600;">{{ lr.reason }}</td>
+                <td style="font-size: 13px;">
+                  {% if lr.status == 'Approved' and lr.approved_leave_date %}
+                  {{ lr.approved_leave_date.strftime('%Y-%m-%d') }}
+                  {% else %}
+                  {{ lr.leave_date.strftime('%Y-%m-%d') }}
+                  {% endif %}
+                </td>
+                <td style="font-size: 13px;">
+                  {% if lr.status == 'Approved' and lr.approved_return_date %}
+                  {{ lr.approved_return_date.strftime('%Y-%m-%d') }}
+                  {% else %}
+                  {{ lr.return_date.strftime('%Y-%m-%d') }}
+                  {% endif %}
+                </td>
+                <td>
+                  <span
+                    class="badge {% if lr.status == 'Approved' %}bg-success{% elif lr.status == 'Rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {{ lr.status }}
+                  </span>
+                </td>
+                <td style="font-size: 13px; color: #666;">
+                  {% if lr.status == 'Approved' and lr.dates_modified %}
+                  Modified dates
+                  {% elif lr.status == 'Approved' %}
+                  Approved
+                  {% elif lr.status == 'Rejected' %}
+                  Rejected
+                  {% else %}
+                  Pending
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5">No leave requests</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <!-- Notices Panel -->
+      <section id="notice" class="panel hidden">
+        <h2 class="panel-title"><i class="fas fa-bullhorn"></i> Notices</h2>
+        <div class="notice-cards" style="padding: 0 1rem;">
+          {% for notice in notices %}
+          <div class="notice-card" style="border: 1px solid #edf2f7; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+            <div class="notice-header" style="background: #f8fbff; border-bottom: 1px solid #eef2f7;">
+              <h3 class="notice-title" style="color: #2c3e50; font-weight: 700;">{{ notice.title }}</h3>
+            </div>
+            <div class="notice-body" style="color: #4a5568; font-size: 15px;">
+              {{ notice.description }}
+            </div>
+            <div class="notice-footer" style="background: #fff; border-top: 1px dashed #edf2f7;">
+              <span class="notice-date"><i class="far fa-clock"></i> Posted on: {{ notice.posted_on }}</span>
+            </div>
+          </div>
+          {% else %}
+          <div class="content-card" style="text-align: center; color: #718096;">
+            <p>No notices available for publication at this time.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+
+      <!-- Reports Panel -->
+      <section id="reports" class="panel hidden">
+        <h2 class="panel-title"><i class="fas fa-exclamation-triangle"></i> Reports & Issues</h2>
+
+        <div class="content-card">
+          <h3 class="sub-title" style="margin-top: 0; color: #2c3e50; font-weight: 600;">Submit New Report</h3>
+          <form method="POST" action="{{ url_for('student.reports') }}" class="form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <label>Room Number<input type="text" name="room_number" required></label>
+              <label>Floor Number<input type="text" name="floor_number" required></label>
+            </div>
+            <label>Issue Title<input type="text" name="issue" required placeholder="What is the issue?"></label>
+            <label>Description<textarea name="description" required
+                placeholder="Describe the problem in detail..."></textarea></label>
+            <button type="submit" class="btn" style="width: 100%; padding: 12px; margin-top: 1rem;">Submit
+              Report</button>
+          </form>
+        </div>
+
+        <div class="content-card">
+          <h3 class="sub-title" style="margin-top: 0; color: #2c3e50; font-weight: 600;">My Submitted Reports</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Issue</th>
+                <th>Description</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rp in reports %}
+              <tr>
+                <td style="font-weight: 600;">{{ rp.issue }}</td>
+                <td style="color: #4a5568;">{{ rp.description }}</td>
+                <td>
+                  <span
+                    class="badge {% if rp.status == 'Resolved' %}bg-success{% elif rp.status == 'Pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {{ rp.status }}
+                  </span>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="3">No reports submitted yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='push_notifications.js') }}?v={{ range(1, 99999) | random }}"></script>
+  <script src="{{ url_for('static', filename='student_dashboard.js') }}"></script>
+</body>
+
+</html>

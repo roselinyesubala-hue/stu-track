@@ -1,0 +1,59 @@
+<!-- templates/first_login.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Set New Password</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='change_password.css') }}">
+</head>
+<body>
+  <main role="main">
+    <div class="login-container">
+      <div class="login-box">
+        <h1>Welcome {{ username }}</h1>
+        <p>Please set a new password to secure your account.</p>
+
+        <form method="POST" id="firstLoginForm" novalidate>
+          <div class="form-group">
+            <label for="new_password">New password</label>
+            <input id="new_password" name="new_password" type="password" required autocomplete="new-password" aria-label="New password">
+          </div>
+          <div class="form-group">
+            <label for="confirm_password">Confirm password</label>
+            <input id="confirm_password" name="confirm_password" type="password" required autocomplete="new-password" aria-label="Confirm password">
+          </div>
+          <button type="submit">Set Password</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Immediately focus the form and prevent navigation away easily
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('firstLoginForm');
+      const pw = document.getElementById('new_password');
+      const confirm = document.getElementById('confirm_password');
+
+      // Simple client-side validation
+      form.addEventListener('submit', (e) => {
+        if (pw.value.length < 8) {
+          alert('Password must be at least 8 characters.');
+          e.preventDefault();
+          return;
+        }
+        if (pw.value !== confirm.value) {
+          alert('Passwords do not match.');
+          e.preventDefault();
+          return;
+        }
+      });
+
+      // Optional: prevent back navigation until password set (soft)
+      window.onbeforeunload = function() {
+        return "Please set your password before leaving this page.";
+      };
+    });
+  </script>
+</body>
+</html>
